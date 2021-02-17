@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useHistory } from "react-router-dom";
+import React, { useState } from "react";
 import axios from "axios";
+import { useHistory } from "react-router-dom";
 
 const initialState = {
   title: "",
@@ -9,23 +9,10 @@ const initialState = {
   stars: "",
 };
 
-const UpdateForm = (props) => {
-  // console.log(props);
+const AddMovie = ({ setMovieList }) => {
   const [form, setForm] = useState(initialState);
 
-  const { id } = useParams();
   const { push } = useHistory();
-
-  useEffect(() => {
-    axios
-      .get(`http://localhost:5000/api/movies/${id}`)
-      .then((res) => {
-        setForm({ ...res.data, stars: res.data.stars.toString() });
-      })
-      .catch((err) =>
-        console.error(`unable to get item: ${id}: `, err.message)
-      );
-  }, []);
 
   const changeHandler = (e) => {
     setForm({
@@ -35,37 +22,22 @@ const UpdateForm = (props) => {
   };
 
   const onSubmit = (e) => {
-    const updateMovie = {
+    e.preventDefault();
+    const newMovie = {
       ...form,
       stars: form.stars.split(","),
     };
-    e.preventDefault();
     axios
-      .put(`http://localhost:5000/api/movies/${id}`, updateMovie)
+      .post(`http://localhost:5000/api/movies`, newMovie)
       .then((res) => {
         console.log(res);
-        props.setMovieList(
-          props.movieList.map((item) => {
-            if (item.id === Number(id)) {
-              return res.data;
-            } else {
-              return item;
-            }
-          })
-        );
-
-        // ternary operator version
-        // props.movieList.map((item) => {
-        //   item.id = id ? res.data : item;
-        // });
-
+        setMovieList(res.data);
         push(`/`);
       })
       .catch((err) => {
         console.error(err.message);
       });
   };
-
   return (
     <>
       <form onSubmit={onSubmit}>
@@ -99,4 +71,4 @@ const UpdateForm = (props) => {
   );
 };
 
-export default UpdateForm;
+export default AddMovie;
